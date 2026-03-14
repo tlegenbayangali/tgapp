@@ -36,14 +36,28 @@ function App() {
   const linkColor = theme?.link_color || '#06b6d4'
   const hintColor = theme?.hint_color || '#6b7280'
 
+  const contentInset = window.Telegram?.WebApp?.contentSafeAreaInset
+  const safeInset = window.Telegram?.WebApp?.safeAreaInset
+  const paddingTop = (contentInset?.top ?? 0) + (safeInset?.top ?? 0)
+  const paddingBottom = (contentInset?.bottom ?? 0) + (safeInset?.bottom ?? 0)
+  const paddingLeft = (contentInset?.left ?? 0) + (safeInset?.left ?? 0)
+  const paddingRight = (contentInset?.right ?? 0) + (safeInset?.right ?? 0)
+
   const { data: profiles, isLoading, error } = useQuery({
     queryKey: ['profiles'],
     queryFn: fetchProfiles,
   })
 
   return (
-    <div style={{ backgroundColor: bgColor, color: textColor, minHeight: '100vh' }}
-         className="p-4">
+    <div style={{
+           backgroundColor: bgColor,
+           color: textColor,
+           minHeight: '100vh',
+           paddingTop: `${paddingTop + 16}px`,
+           paddingBottom: `${paddingBottom + 16}px`,
+           paddingLeft: `${paddingLeft + 16}px`,
+           paddingRight: `${paddingRight + 16}px`,
+         }}>
 
       <div className="mb-6">
         <h1 className="text-xl font-bold font-mono tracking-wider" style={{ color: linkColor }}>

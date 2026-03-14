@@ -13,6 +13,18 @@ declare global {
             button_text_color?: string;
             secondary_bg_color?: string;
           };
+          contentSafeAreaInset?: {
+            top: number;
+            bottom: number;
+            left: number;
+            right: number;
+          };
+          safeAreaInset?: {
+            top: number;
+            bottom: number;
+            left: number;
+            right: number;
+          };
           initDataUnsafe?: {
             user?: {
               id: number;

@@ -1,95 +1,122 @@
+import { useQuery } from '@tanstack/react-query'
+
+interface Profile {
+  id: number
+  public_id: string
+  name: string
+  gender: 'male' | 'female'
+  location: string
+  birth_date: string | null
+  avatar: string | null
+}
+
+async function fetchProfiles(): Promise<Profile[]> {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/test`, {
+    headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': '1' },
+  })
+  if (!res.ok) throw new Error(await res.text())
+  const json = await res.json()
+  return Array.isArray(json) ? json : (json.data ?? json.profiles ?? Object.values(json)[0])
+}
+
+function getAge(birthDate: string | null): string {
+  if (!birthDate) return ''
+  const diff = Date.now() - new Date(birthDate).getTime()
+  const age = Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000))
+  return `, ${age} лет`
+}
+
 function App() {
-  window.Telegram?.WebApp?.ready();
-  
-  const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const theme = window.Telegram?.WebApp?.themeParams;
-  
-  // Используем цвета из темы Telegram
-  const bgColor = theme?.bg_color || '#0a0a0a';
-  const textColor = theme?.text_color || '#ffffff';
-  const buttonColor = theme?.button_color || '#3b82f6';
-  const linkColor = theme?.link_color || '#06b6d4';
-  const hintColor = theme?.hint_color || '#6b7280';
+  window.Telegram?.WebApp?.ready()
+
+  const theme = window.Telegram?.WebApp?.themeParams
+  const bgColor = theme?.bg_color || '#0a0a0a'
+  const textColor = theme?.text_color || '#ffffff'
+  const buttonColor = theme?.button_color || '#3b82f6'
+  const linkColor = theme?.link_color || '#06b6d4'
+  const hintColor = theme?.hint_color || '#6b7280'
+
+  const { data: profiles, isLoading, error } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: fetchProfiles,
+  })
 
   return (
-    <div style={{ backgroundColor: bgColor, color: textColor, minHeight: '100vh' }} 
-         className="p-4 flex items-center justify-center">
-      
-      <div className="relative max-w-md w-full">
-        {/* Анимированная подсветка */}
-        <div className="absolute inset-0 rounded-2xl blur-xl animate-pulse" 
-             style={{ backgroundColor: `${buttonColor}20` }}></div>
-        
-        {/* Основная карточка */}
-        <div className="relative backdrop-blur-sm rounded-2xl p-6 shadow-2xl border"
-             style={{ 
-               backgroundColor: `${bgColor}cc`, 
-               borderColor: `${linkColor}50` 
-             }}>
-          
-          {/* Статус */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full animate-pulse" 
-                   style={{ backgroundColor: linkColor, boxShadow: `0 0 10px ${linkColor}50` }}></div>
-              <span className="text-sm font-mono tracking-wider" style={{ color: linkColor }}>ONLINE</span>
-            </div>
-            {user?.is_premium && (
-              <div className="px-3 py-1 rounded-full text-xs font-bold tracking-wide"
-                   style={{ backgroundColor: buttonColor, color: theme?.button_text_color || '#fff' }}>
-                ⭐ PREMIUM
-              </div>
-            )}
-          </div>
+    <div style={{ backgroundColor: bgColor, color: textColor, minHeight: '100vh' }}
+         className="p-4">
 
-          {/* Аватар */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg"
-                   style={{ 
-                     background: `linear-gradient(135deg, ${linkColor}, ${buttonColor})`,
-                     boxShadow: `0 10px 30px ${linkColor}30`
-                   }}>
-                <span className="text-2xl font-bold text-white">
-                  {user?.first_name?.charAt(0).toUpperCase() || '?'}
-                </span>
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 animate-pulse"
-                   style={{ backgroundColor: linkColor, borderColor: bgColor }}></div>
-            </div>
-          </div>
-
-          {/* Информация */}
-          <div className="space-y-3">
-            {[
-              { label: 'NAME', value: `${user?.first_name || 'Unknown'} ${user?.last_name || ''}` },
-              { label: 'USERNAME', value: `@${user?.username || 'anonymous'}` },
-              { label: 'USER ID', value: `#${user?.id || '000000'}` },
-              user?.language_code ? { label: 'LANGUAGE', value: user.language_code.toUpperCase() } : null
-            ].filter((item): item is { label: string; value: string } => item !== null).map((item, i) => (
-              <div key={i} className="rounded-lg p-3 border"
-                   style={{ backgroundColor: `${bgColor}80`, borderColor: `${hintColor}30` }}>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-mono" style={{ color: hintColor }}>{item.label}</span>
-                  <span className="font-semibold" style={{ color: i % 2 ? linkColor : buttonColor }}>
-                    {item.value}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Статус бар */}
-          <div className="mt-6 pt-4 border-t flex items-center justify-between text-xs"
-               style={{ borderColor: `${hintColor}30` }}>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: buttonColor }}></div>
-              <span className="font-mono" style={{ color: hintColor }}>TELEGRAM WEB APP</span>
-            </div>
-            <span className="font-mono" style={{ color: hintColor }}>v1.0.0</span>
-          </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold font-mono tracking-wider" style={{ color: linkColor }}>
+          PROFILES
+        </h1>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: linkColor }}></div>
+          <span className="text-xs font-mono" style={{ color: hintColor }}>
+            {profiles ? `${profiles.length} записей` : 'загрузка...'}
+          </span>
         </div>
       </div>
+
+      {isLoading && (
+        <div className="flex flex-col gap-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="rounded-xl p-4 border animate-pulse"
+                 style={{ backgroundColor: `${bgColor}cc`, borderColor: `${hintColor}20` }}>
+              <div className="h-4 w-32 rounded mb-2" style={{ backgroundColor: `${hintColor}40` }}></div>
+              <div className="h-3 w-20 rounded" style={{ backgroundColor: `${hintColor}20` }}></div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-xl p-4 border text-sm font-mono"
+             style={{ borderColor: '#ef444450', backgroundColor: '#ef444420', color: '#ef4444' }}>
+          Ошибка загрузки: {(error as Error).message}
+        </div>
+      )}
+
+      {profiles && (
+        <div className="flex flex-col gap-3">
+          {profiles.map((profile) => (
+            <div key={profile.public_id}
+                 className="rounded-xl p-4 border"
+                 style={{ backgroundColor: `${bgColor}cc`, borderColor: `${linkColor}30` }}>
+              <div className="flex items-center gap-3">
+                {/* Аватар */}
+                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+                     style={{
+                       background: `linear-gradient(135deg, ${linkColor}, ${buttonColor})`,
+                       boxShadow: `0 4px 12px ${linkColor}30`,
+                     }}>
+                  <span className="text-lg font-bold text-white">
+                    {profile.name.charAt(0)}
+                  </span>
+                </div>
+
+                {/* Инфо */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate" style={{ color: textColor }}>
+                    {profile.name}
+                  </div>
+                  <div className="text-sm mt-0.5" style={{ color: hintColor }}>
+                    {profile.location}{getAge(profile.birth_date)}
+                  </div>
+                </div>
+
+                {/* Пол */}
+                <div className="text-xs font-mono px-2 py-1 rounded-full shrink-0"
+                     style={{
+                       backgroundColor: profile.gender === 'male' ? `${buttonColor}30` : `${linkColor}30`,
+                       color: profile.gender === 'male' ? buttonColor : linkColor,
+                     }}>
+                  {profile.gender === 'male' ? 'М' : 'Ж'}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
